@@ -1,4 +1,22 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is **AI Use Case Hub**: Next.js intake + ideas dashboard with optional Supabase and Slack.
+
+## Local setup
+
+```bash
+npm install
+cp .env.local.example .env.local   # then edit values
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Behind a corporate HTTPS proxy, see **`docs/DEPLOY_VERCEL.md`** or set **`USE_LOCAL_IDEAS_STORE=true`** in `.env.local` for file-based dev storage.
+
+## Deploy (shared DB, avoids laptop TLS issues)
+
+See **[docs/DEPLOY_VERCEL.md](./docs/DEPLOY_VERCEL.md)** for step-by-step **Vercel** deployment and required environment variables.
+
+---
+
+Below is generic Next.js documentation.
 
 ## Getting Started
 
@@ -6,12 +24,6 @@ First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

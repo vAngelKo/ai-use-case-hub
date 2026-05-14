@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# local dev ideas store (USE_LOCAL_IDEAS_STORE=true)
+.local-data/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
