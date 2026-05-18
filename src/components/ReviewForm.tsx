@@ -16,8 +16,9 @@ const HIDDEN_IN_REVIEW = new Set(["escalation_tier", "roi"]);
 interface ReviewFormProps {
   data: UseCaseOutput;
   onChange: (data: UseCaseOutput) => void;
-  /** `full` shows tier + ROI selects (e.g. idea detail dashboard). */
+  /** `full` shows ROI select + tier (if isAdmin). */
   variant?: "review" | "full";
+  isAdmin?: boolean;
 }
 
 const STANDARD_FIELD_OPTIONS: Record<string, readonly string[] | undefined> = {
@@ -29,10 +30,13 @@ export function ReviewForm({
   data,
   onChange,
   variant = "review",
+  isAdmin = false,
 }: ReviewFormProps) {
-  const FIELDS_FOR_REVIEW = USE_CASE_FIELDS.filter(
-    (f) => variant === "full" || !HIDDEN_IN_REVIEW.has(f.key)
-  );
+  const FIELDS_FOR_REVIEW = USE_CASE_FIELDS.filter((f) => {
+    if (variant !== "full" && HIDDEN_IN_REVIEW.has(f.key)) return false;
+    if (f.key === "escalation_tier" && !isAdmin) return false;
+    return true;
+  });
 
   const handleChange = (
     key: keyof UseCaseOutput,

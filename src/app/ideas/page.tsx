@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listLocalIdeas, useLocalIdeasStore } from "@/lib/local-ideas-store";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { isAdmin } from "@/lib/admin-auth";
 import { StatusBadge, TierBadge } from "@/components/StatusBadge";
 import type { IdeaRow } from "@/types";
 import { STATUS_OPTIONS, MARKETING_FUNCTIONS } from "@/constants/standards";
@@ -40,6 +41,7 @@ export default async function IdeasPage({
   const q = sp.q?.trim() || undefined;
 
   const filters = { status, marketing_function, owner, q };
+  const admin = await isAdmin();
 
   let ideas: IdeaRow[];
 
@@ -211,7 +213,7 @@ export default async function IdeasPage({
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Owner</th>
                 <th className="px-4 py-3 font-medium">Function</th>
-                <th className="px-4 py-3 font-medium">Tier</th>
+                {admin && <th className="px-4 py-3 font-medium">Tier</th>}
                 <th className="px-4 py-3 font-medium">Value type</th>
                 <th className="px-4 py-3 font-medium">Submitted</th>
               </tr>
@@ -259,9 +261,11 @@ export default async function IdeasPage({
                     <td className="px-4 py-3 text-slate-700 max-w-[120px] truncate">
                       {row.marketing_function ?? "—"}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <TierBadge tier={row.escalation_tier} />
-                    </td>
+                    {admin && (
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <TierBadge tier={row.escalation_tier} />
+                      </td>
+                    )}
                     <td className="px-4 py-3 text-slate-600 max-w-[160px]">
                       <span
                         className="truncate block"

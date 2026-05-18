@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listLocalIdeas, useLocalIdeasStore } from "@/lib/local-ideas-store";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { isAdmin } from "@/lib/admin-auth";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { IdeaRow } from "@/types";
 import {
@@ -45,7 +46,7 @@ async function fetchStatIdeas(): Promise<StatIdea[]> {
 }
 
 export default async function Home() {
-  const ideas = await fetchStatIdeas();
+  const [ideas, admin] = await Promise.all([fetchStatIdeas(), isAdmin()]);
   const total = ideas.length;
 
   const byStatus = STATUS_OPTIONS.map((s) => ({
@@ -112,11 +113,13 @@ export default async function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <BreakdownCard title="By Status" rows={byStatus} total={total} />
           <BreakdownCard title="By Function" rows={byFunction} total={total} />
-          <BreakdownCard
-            title="By Escalation Tier"
-            rows={byTier}
-            total={total}
-          />
+          {admin && (
+            <BreakdownCard
+              title="By Escalation Tier"
+              rows={byTier}
+              total={total}
+            />
+          )}
         </div>
       )}
 

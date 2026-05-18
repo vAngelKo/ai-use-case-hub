@@ -7,9 +7,11 @@ import { ReviewForm } from "@/components/ReviewForm";
 export function IdeaDetailForm({
   ideaId,
   initial,
+  isAdmin = false,
 }: {
   ideaId: string;
   initial: UseCaseOutput;
+  isAdmin?: boolean;
 }) {
   const [data, setData] = useState<UseCaseOutput>(initial);
   const [saving, setSaving] = useState(false);
@@ -40,7 +42,7 @@ export function IdeaDetailForm({
 
   return (
     <div className="space-y-6">
-      <ReviewForm data={data} onChange={setData} variant="full" />
+      <ReviewForm data={data} onChange={setData} variant="full" isAdmin={isAdmin} />
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"

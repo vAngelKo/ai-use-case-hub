@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocalIdea, useLocalIdeasStore } from "@/lib/local-ideas-store";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { isAdmin } from "@/lib/admin-auth";
 import { rowToUseCase, type IdeaRow } from "@/types";
 import { IdeaDetailForm } from "@/components/IdeaDetailForm";
 
@@ -31,7 +32,7 @@ export default async function IdeaDetailPage({
   if (!row) {
     notFound();
   }
-  const initial = rowToUseCase(row);
+  const [initial, admin] = [rowToUseCase(row), await isAdmin()];
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-6">
@@ -59,7 +60,7 @@ export default async function IdeaDetailPage({
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-sm font-medium text-slate-800 mb-4">Edit fields</h2>
-        <IdeaDetailForm ideaId={row.id} initial={initial} />
+        <IdeaDetailForm ideaId={row.id} initial={initial} isAdmin={admin} />
       </div>
     </div>
   );

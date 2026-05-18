@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { isAdmin } from "@/lib/admin-auth";
+import { AdminBar } from "@/components/AdminBar";
 
-export function AppHeader() {
+export async function AppHeader() {
+  const admin = await isAdmin();
+
   return (
     <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
       <div className="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -19,6 +23,18 @@ export function AppHeader() {
               Ideas
             </Link>
           </nav>
+        </div>
+        <div>
+          {admin ? (
+            <AdminBar />
+          ) : (
+            <Link
+              href="/admin/login"
+              className="text-xs text-slate-400 hover:text-slate-600"
+            >
+              Admin
+            </Link>
+          )}
         </div>
       </div>
     </header>
