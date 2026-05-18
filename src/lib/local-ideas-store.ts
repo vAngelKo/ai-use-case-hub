@@ -45,6 +45,7 @@ export function listLocalIdeas(filters: {
   status?: string;
   marketing_function?: string;
   owner?: string;
+  q?: string;
 }): IdeaRow[] {
   let rows = readAll();
   if (filters.status) {
@@ -59,6 +60,15 @@ export function listLocalIdeas(filters: {
     const q = filters.owner.toLowerCase();
     rows = rows.filter((r) =>
       (r.business_owner ?? "").toLowerCase().includes(q)
+    );
+  }
+  if (filters.q) {
+    const q = filters.q.toLowerCase();
+    rows = rows.filter(
+      (r) =>
+        (r.use_case ?? "").toLowerCase().includes(q) ||
+        (r.description ?? "").toLowerCase().includes(q) ||
+        (r.ai_tool ?? "").toLowerCase().includes(q)
     );
   }
   return rows.sort(
