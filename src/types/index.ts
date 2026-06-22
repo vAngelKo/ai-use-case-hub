@@ -46,6 +46,7 @@ export interface IdeaRow {
   hours_saved: string | null;
   missing_info: unknown;
   suggested_follow_up_questions: unknown;
+  similar_ideas: unknown;
 }
 
 export interface StructuredFormState {

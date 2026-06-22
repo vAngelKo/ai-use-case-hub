@@ -33,11 +33,13 @@ export async function POST(req: NextRequest) {
     const { email: submitter_email, name: submitter_name } =
       resolveSubmitterFromBody(body);
 
+    const similarIdeas = Array.isArray(body?.similarIdeas) ? body.similarIdeas : [];
     const embedding = useLocalIdeasStore() ? null : await generateEmbedding(useCase);
 
     const insertRow = {
       submitter_email,
       submitter_name,
+      similar_ideas: similarIdeas,
       ...(embedding ? { embedding: JSON.stringify(embedding) } : {}),
       marketing_function: useCase.marketing_function || null,
       subfunction: useCase.subfunction || null,
@@ -93,7 +95,7 @@ export async function POST(req: NextRequest) {
         headers: { "Content-Type": "application/json" },
       });
     }
-    const slack = await postSlackUseCase(useCase, { id });
+    const slack = await postSlackUseCase(useCase, { id, similarIdeas });
     if (!slack.ok) {
       console.error("Slack error after DB save:", slack);
       return new Response(

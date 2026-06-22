@@ -300,6 +300,7 @@ export default function IntakePage() {
             data={useCaseData}
             submitterEmail={submitterEmail}
             submitterName={submitterName}
+            similarIdeas={duplicates}
           />
         </div>
       </div>

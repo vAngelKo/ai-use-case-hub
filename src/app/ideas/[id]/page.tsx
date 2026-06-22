@@ -34,6 +34,10 @@ export default async function IdeaDetailPage({
   }
   const [initial, admin] = [rowToUseCase(row), await isAdmin()];
 
+  const similarIdeas = Array.isArray(row.similar_ideas)
+    ? (row.similar_ideas as { id: string; use_case: string; similarity: number }[])
+    : [];
+
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-6">
       <div>
@@ -57,6 +61,32 @@ export default async function IdeaDetailPage({
         </p>
         <p className="text-xs text-slate-400 font-mono">ID: {row.id}</p>
       </header>
+
+      {admin && similarIdeas.length > 0 && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-amber-800">
+            ⚠️ Submitted despite similar ideas
+          </h3>
+          <p className="text-xs text-amber-700">
+            The submitter was warned about these before submitting.
+          </p>
+          <ul className="space-y-1">
+            {similarIdeas.map((s) => (
+              <li key={s.id} className="text-sm">
+                <Link
+                  href={`/ideas/${s.id}`}
+                  className="text-sky-700 hover:text-sky-900 font-medium underline"
+                >
+                  {s.use_case || "Untitled"}
+                </Link>
+                <span className="text-xs text-slate-400 ml-2">
+                  {Math.round(s.similarity * 100)}% similar
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-sm font-medium text-slate-800 mb-4">Edit fields</h2>

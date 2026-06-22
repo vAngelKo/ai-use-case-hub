@@ -3,14 +3,18 @@
 import { useState } from "react";
 import type { UseCaseOutput } from "@/types";
 
+type SimilarIdea = { id: string; use_case: string; similarity: number };
+
 export function SubmitRequestButton({
   data,
   submitterEmail,
   submitterName,
+  similarIdeas = [],
 }: {
   data: UseCaseOutput;
   submitterEmail: string;
   submitterName: string;
+  similarIdeas?: SimilarIdea[];
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +33,7 @@ export function SubmitRequestButton({
           useCase: data,
           submitterEmail,
           submitterName,
+          similarIdeas,
         }),
       });
       const json = await res.json().catch(() => ({}));

@@ -25,6 +25,7 @@ create table if not exists public.ideas (
   hours_saved text,
   missing_info jsonb not null default '[]'::jsonb,
   suggested_follow_up_questions jsonb not null default '[]'::jsonb,
+  similar_ideas jsonb not null default '[]'::jsonb,
   embedding vector(1536)
 );
 
@@ -32,7 +33,8 @@ create index if not exists ideas_created_at_idx on public.ideas (created_at desc
 create index if not exists ideas_status_idx on public.ideas (status);
 create index if not exists ideas_marketing_function_idx on public.ideas (marketing_function);
 
--- Add embedding column if missing (must come before the ivfflat index)
+-- Add columns if missing (safe to re-run)
+alter table public.ideas add column if not exists similar_ideas jsonb not null default '[]'::jsonb;
 alter table public.ideas add column if not exists embedding vector(1536);
 
 create index if not exists ideas_embedding_idx on public.ideas using ivfflat (embedding vector_cosine_ops) with (lists = 10);

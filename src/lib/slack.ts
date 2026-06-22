@@ -8,7 +8,9 @@ function safeLine(s: string | undefined, max = 4000): string {
   return single.length <= max ? single || "—" : `${single.slice(0, max)}…`;
 }
 
-export function buildSlackText(data: UseCaseOutput, meta?: { id?: string }): string {
+type SimilarIdea = { id: string; use_case: string; similarity: number };
+
+export function buildSlackText(data: UseCaseOutput, meta?: { id?: string; similarIdeas?: SimilarIdea[] }): string {
   const lines: string[] = [
     "NEW AI USE CASE INTAKE",
     meta?.id ? `Record: ${meta.id}` : "",
@@ -38,6 +40,13 @@ export function buildSlackText(data: UseCaseOutput, meta?: { id?: string }): str
     lines.push("", "Missing / flagged:");
     for (const m of data.missing_info) {
       lines.push(`- ${safeLine(m, 500)}`);
+    }
+  }
+
+  if (meta?.similarIdeas?.length) {
+    lines.push("", "⚠️ Submitted despite similar ideas already existing:");
+    for (const s of meta.similarIdeas) {
+      lines.push(`- ${safeLine(s.use_case, 300)} (${Math.round(s.similarity * 100)}% similar, id: ${s.id})`);
     }
   }
 
@@ -75,7 +84,7 @@ export function normalizeWebhookUrl(
 
 export async function postSlackUseCase(
   data: UseCaseOutput,
-  meta?: { id?: string }
+  meta?: { id?: string; similarIdeas?: SimilarIdea[] }
 ): Promise<{ ok: true } | { ok: false; message: string; detail?: string }> {
   const webhookCheck = normalizeWebhookUrl(process.env.SLACK_WEBHOOK_URL);
   if (!webhookCheck.ok) {
