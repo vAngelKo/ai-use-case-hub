@@ -95,6 +95,8 @@ export default function IntakePage() {
   const [readyToGenerate, setReadyToGenerate] = useState(false);
   const [duplicates, setDuplicates] = useState<Duplicate[]>([]);
   const [duplicateChecking, setDuplicateChecking] = useState(false);
+  const [duplicatesDismissed, setDuplicatesDismissed] = useState(false);
+  const duplicateCheckedRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -117,6 +119,22 @@ export default function IntakePage() {
     setInput("");
     setReadyToGenerate(false);
     setIsLoading(true);
+
+    // Run duplicate check on first user message — fire and forget
+    if (!duplicateCheckedRef.current) {
+      duplicateCheckedRef.current = true;
+      setDuplicatesDismissed(false);
+      setDuplicateChecking(true);
+      fetch("/api/check-duplicate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ use_case: text }),
+      })
+        .then((r) => r.json())
+        .then((d) => setDuplicates(d.duplicates ?? []))
+        .catch(() => {})
+        .finally(() => setDuplicateChecking(false));
+    }
 
     try {
       const apiMessages = [...messages, userMessage].map((m) => ({ role: m.role, content: m.content }));
@@ -188,18 +206,6 @@ export default function IntakePage() {
       const generated = json as UseCaseOutput;
       setUseCaseData(generated);
       setView("review");
-
-      // Check for duplicates in the background
-      setDuplicateChecking(true);
-      fetch("/api/check-duplicate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ use_case: generated.use_case, description: generated.description }),
-      })
-        .then((r) => r.json())
-        .then((d) => setDuplicates(d.duplicates ?? []))
-        .catch(() => {})
-        .finally(() => setDuplicateChecking(false));
     } catch (e) {
       setGenerateError(e instanceof Error ? e.message : "Generate failed");
     } finally {
@@ -367,6 +373,38 @@ export default function IntakePage() {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Inline duplicate warning during chat */}
+      {!duplicatesDismissed && !duplicateChecking && duplicates.length > 0 && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 mb-3 space-y-1.5">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-sm font-semibold text-amber-800">Similar idea already exists</p>
+            <button
+              onClick={() => setDuplicatesDismissed(true)}
+              className="text-amber-400 hover:text-amber-700 text-xs shrink-0 mt-0.5"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+          <p className="text-xs text-amber-700">You can still continue, but check these first:</p>
+          <ul className="space-y-0.5">
+            {duplicates.map((d) => (
+              <li key={d.id} className="text-sm">
+                <a
+                  href={`/ideas/${d.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sky-700 hover:text-sky-900 font-medium underline"
+                >
+                  {d.use_case || "Untitled"}
+                </a>
+                <span className="text-xs text-slate-400 ml-2">{Math.round(d.similarity * 100)}% similar</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="space-y-3">
         {showGenerateButton && (
