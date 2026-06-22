@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { patchLocalIdea, useLocalIdeasStore } from "@/lib/local-ideas-store";
+import { deleteLocalIdea, patchLocalIdea, useLocalIdeasStore } from "@/lib/local-ideas-store";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type { UseCaseOutput } from "@/types";
 
@@ -88,6 +88,52 @@ export async function PATCH(
   } catch (err) {
     console.error("PATCH idea error:", err);
     const message = err instanceof Error ? err.message : "Update failed";
+    return new Response(
+      JSON.stringify({ error: message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params;
+    if (!id) {
+      return new Response(JSON.stringify({ error: "Missing id" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (useLocalIdeasStore()) {
+      const ok = deleteLocalIdea(id);
+      if (!ok) {
+        return new Response(JSON.stringify({ error: "Idea not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      const supabase = getSupabaseAdmin();
+      const { error } = await supabase.from("ideas").delete().eq("id", id);
+      if (error) {
+        console.error("Supabase delete error:", error);
+        return new Response(
+          JSON.stringify({ error: "Delete failed", detail: error.message }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("DELETE idea error:", err);
+    const message = err instanceof Error ? err.message : "Delete failed";
     return new Response(
       JSON.stringify({ error: message }),
       { status: 500, headers: { "Content-Type": "application/json" } }

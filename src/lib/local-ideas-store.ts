@@ -98,6 +98,14 @@ export function insertLocalIdea(data: LocalIdeaInsert): IdeaRow {
   return row;
 }
 
+export function deleteLocalIdea(id: string): boolean {
+  const rows = readAll();
+  const next = rows.filter((r) => r.id !== id);
+  if (next.length === rows.length) return false;
+  writeAll(next);
+  return true;
+}
+
 export function patchLocalIdea(
   id: string,
   patch: Record<string, unknown>
