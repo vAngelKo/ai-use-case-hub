@@ -31,10 +31,11 @@ create table if not exists public.ideas (
 create index if not exists ideas_created_at_idx on public.ideas (created_at desc);
 create index if not exists ideas_status_idx on public.ideas (status);
 create index if not exists ideas_marketing_function_idx on public.ideas (marketing_function);
-create index if not exists ideas_embedding_idx on public.ideas using ivfflat (embedding vector_cosine_ops) with (lists = 10);
 
--- If the table already exists, add the embedding column (safe to run multiple times)
+-- Add embedding column if missing (must come before the ivfflat index)
 alter table public.ideas add column if not exists embedding vector(1536);
+
+create index if not exists ideas_embedding_idx on public.ideas using ivfflat (embedding vector_cosine_ops) with (lists = 10);
 
 -- RPC function used by duplicate detection
 create or replace function match_ideas(
