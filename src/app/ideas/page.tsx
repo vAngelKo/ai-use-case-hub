@@ -48,35 +48,49 @@ export default async function IdeasPage({
   if (useLocalIdeasStore()) {
     ideas = listLocalIdeas(filters);
   } else {
-    const supabase = getSupabaseAdmin();
-    let query = supabase
-      .from("ideas")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (status) query = query.eq("status", status);
-    if (marketing_function)
-      query = query.eq("marketing_function", marketing_function);
-    if (owner) query = query.ilike("business_owner", `%${owner}%`);
-    if (q)
-      query = query.or(
-        `use_case.ilike.%${q}%,description.ilike.%${q}%,ai_tool.ilike.%${q}%`
-      );
+    try {
+      const supabase = getSupabaseAdmin();
+      let query = supabase
+        .from("ideas")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (status) query = query.eq("status", status);
+      if (marketing_function)
+        query = query.eq("marketing_function", marketing_function);
+      if (owner) query = query.ilike("business_owner", `%${owner}%`);
+      if (q)
+        query = query.or(
+          `use_case.ilike.%${q}%,description.ilike.%${q}%,ai_tool.ilike.%${q}%`
+        );
 
-    const { data: rows, error } = await query;
+      const { data: rows, error } = await query;
 
-    if (error) {
+      if (error) {
+        return (
+          <div className="max-w-5xl mx-auto p-6">
+            <p className="text-rose-600 text-sm">
+              Could not load ideas: {error.message}. Check Supabase env and that
+              the table exists (see{" "}
+              <code className="text-xs">supabase/schema.sql</code>).
+            </p>
+          </div>
+        );
+      }
+
+      ideas = (rows ?? []) as IdeaRow[];
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
       return (
         <div className="max-w-5xl mx-auto p-6">
           <p className="text-rose-600 text-sm">
-            Could not load ideas: {error.message}. Check Supabase env and that
-            the table exists (see{" "}
-            <code className="text-xs">supabase/schema.sql</code>).
+            Could not connect to database: {msg}. Check that{" "}
+            <code className="text-xs">SUPABASE_URL</code> and{" "}
+            <code className="text-xs">SUPABASE_SERVICE_ROLE_KEY</code> are set
+            in your environment variables.
           </p>
         </div>
       );
     }
-
-    ideas = (rows ?? []) as IdeaRow[];
   }
 
   const exportHref = buildExportHref({ status, function: marketing_function, owner, q });

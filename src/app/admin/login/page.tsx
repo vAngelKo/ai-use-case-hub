@@ -22,8 +22,8 @@ export default function AdminLoginPage() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.error || "Invalid password");
-      router.push("/");
       router.refresh();
+      router.push("/");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Login failed");
     } finally {
