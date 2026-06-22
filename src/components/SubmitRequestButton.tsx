@@ -3,7 +3,15 @@
 import { useState } from "react";
 import type { UseCaseOutput } from "@/types";
 
-export function SubmitRequestButton({ data }: { data: UseCaseOutput }) {
+export function SubmitRequestButton({
+  data,
+  submitterEmail,
+  submitterName,
+}: {
+  data: UseCaseOutput;
+  submitterEmail: string;
+  submitterName: string;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -17,7 +25,11 @@ export function SubmitRequestButton({ data }: { data: UseCaseOutput }) {
       const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ useCase: data }),
+        body: JSON.stringify({
+          useCase: data,
+          submitterEmail,
+          submitterName,
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {

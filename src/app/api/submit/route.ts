@@ -1,9 +1,23 @@
 import { NextRequest } from "next/server";
+import OpenAI from "openai";
 import { insertLocalIdea, useLocalIdeasStore } from "@/lib/local-ideas-store";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { postSlackUseCase } from "@/lib/slack";
 import { resolveSubmitterFromBody } from "@/lib/submitter";
 import type { UseCaseOutput } from "@/types";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+async function generateEmbedding(useCase: UseCaseOutput): Promise<number[] | null> {
+  try {
+    const text = [useCase.use_case, useCase.description].filter(Boolean).join(" ").trim();
+    if (!text) return null;
+    const res = await openai.embeddings.create({ model: "text-embedding-3-small", input: text });
+    return res.data[0].embedding;
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,9 +33,12 @@ export async function POST(req: NextRequest) {
     const { email: submitter_email, name: submitter_name } =
       resolveSubmitterFromBody(body);
 
+    const embedding = useLocalIdeasStore() ? null : await generateEmbedding(useCase);
+
     const insertRow = {
       submitter_email,
       submitter_name,
+      ...(embedding ? { embedding: JSON.stringify(embedding) } : {}),
       marketing_function: useCase.marketing_function || null,
       subfunction: useCase.subfunction || null,
       status: useCase.status || null,
